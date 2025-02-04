@@ -1,3 +1,4 @@
+import os
 from lxml import etree as ET
 
 NS2013 = 'http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15'
@@ -10,9 +11,10 @@ class TranskribusToPrima():
     Translates Transkribus variant of PAGE to standard-conformant PAGE
     """
 
-    def __init__(self, tree, prefer_imgurl=False):
+    def __init__(self, tree, prefer_imgurl=False, imgpath=''):
         self.tree = tree
         self.prefer_imgurl = prefer_imgurl
+        self.imgpath = imgpath
 
     def convert_metadata(self):
         """Remove any Metadata/TranskribusMetadata"""
@@ -21,8 +23,12 @@ class TranskribusToPrima():
         if el_metadata is not None:
             el_metadata = el_metadata.find('{*}TranskribusMetadata')
         if el_metadata is not None:
-            if self.prefer_imgurl and 'imgUrl' in el_metadata.attrib:
-                el_page.attrib['imageFilename'] = el_metadata.attrib['imgUrl']
+            if len(self.imgpath) > 0:
+                el_page.attrib['imageFilename'] = os.path.join(self.imgpath, el_page.attrib['imageFilename'])
+            else:
+                if self.prefer_imgurl and 'imgUrl' in el_metadata.attrib:
+                    el_page.attrib['imageFilename'] = el_metadata.attrib['imgUrl']
+
             el_metadata.getparent().remove(el_metadata)
 
     def convert_reading_order(self):
